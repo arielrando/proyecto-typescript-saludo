@@ -1,6 +1,6 @@
 import { openmeteo } from "../utils/openmeteo";
-import { utils } from "../utils/utils";
 import logger from "../utils/logger";
+import { Response,Request } from "express";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -16,21 +16,29 @@ export class saludo{
         this.nombre = nombre;
     }
 
-    public async welcomeGeneric(): Promise<welcomeGenericResult>{
+    public async welcomeGeneric(res: Response, req: Request): Promise<welcomeGenericResult>{
         try{
-            if (!this.nombre) {
-                logger.error(`No ingreso el nombre`);
-                return {success:false,message:`Debe ingresar el nombre!`};
+            let nextSunTime = undefined;
+            let welcomeType = 1;
+            const formatter = new Intl.DateTimeFormat("en-CA", {timeZone: process.env.TIMEZONE, dateStyle: "short", timeStyle: "medium", hour12: false}).format(new Date());
+            const now = new Date(formatter);
+            const nowAux = now.getTime();
+            try {
+                nextSunTime = JSON.parse(req.cookies.nextSunTime);
+            } catch {
+                nextSunTime = undefined;
+            }
+            
+            if (typeof nextSunTime !== 'undefined' && nextSunTime !== null && nowAux < nextSunTime.nextSunTime){
+                welcomeType = nextSunTime.welcomeType;
+            }else{
+                const openmeteoObject = new openmeteo(Number(process.env.LATITUDE), Number(process.env.LONGITUDE));
+                const SunHours = await openmeteoObject.getSunHours(res);
+                welcomeType = SunHours.welcomeType;
             }
 
-            if(!utils.isOnlyLetters(this.nombre)){
-                logger.error(`No se ingreso solo letras: ${this.nombre}`);
-                return {success:false,message:`Debe ingresar solo letras!`};
-            }
-            const openmeteoObject = new openmeteo(Number(process.env.LATITUDE), Number(process.env.LONGITUDE));
-            const SunHours = await openmeteoObject.getSunHours();
             const saludoTexto = (() => {
-                switch (SunHours.welcomeType) {
+                switch (welcomeType) {
                     case 1:
                     default:
                     return "buenos días";

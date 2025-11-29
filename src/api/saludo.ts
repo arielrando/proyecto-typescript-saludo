@@ -1,15 +1,47 @@
-import { Router, Request, Response } from "express";
+import { Router, Request, Response, NextFunction  } from "express";
 import { saludo } from "../classes/models/saludo";
+import { utils } from "../classes/utils/utils";
+import logger from "../classes/utils/logger";
 import dotenv from "dotenv";
 dotenv.config();
 
 const router = Router();
 
-async function welcomeGenericApi(nombre: string,res: Response): Promise<any>{
+function validarNombre(req: Request, res: Response, next: NextFunction): void {
+  const nombre =
+    req.params.nombre ??
+    req.query.nombre ??
+    req.body.nombre;
+
+  if (typeof nombre !== "string" || nombre.trim() === "") {
+    logger.error(`No ingreso el nombre`);
+    res.status(400).json({
+      error: true,
+      errorMessage: "Debe enviar un nombre válido",
+    });
+    return;
+  }
+
+  if(!utils.isOnlyLetters(nombre)){
+    logger.error(`No se ingreso solo letras: ${nombre}`);
+    res.status(400).json({
+      error: true,
+      errorMessage: "El nombre solo puede contener letras",
+    });
+    return;
+  }
+
+  (req as any).nombreValidado = nombre;
+
+  next();
+}
+
+async function welcomeGenericApi(res: Response, req: Request): Promise<any>{
     try{
-    const saludoObject = new saludo(String(nombre));
-    const saludoResult = await saludoObject.welcomeGeneric();
-    if(saludoResult.success){
+      const nombre = (req as any).nombreValidado;
+      const saludoObject = new saludo(String(nombre));
+      const saludoResult = await saludoObject.welcomeGeneric(res, req);
+      if(saludoResult.success){
       return res.status(200).json({
         saludo: saludoResult.message,
       });
@@ -21,21 +53,10 @@ async function welcomeGenericApi(nombre: string,res: Response): Promise<any>{
   }
 }
 
-router.get("/:nombre", async (req: Request, res: Response) => {
-  const { nombre } = req.params;
-  welcomeGenericApi(nombre, res);
-});
+router.get("/:nombre", validarNombre, async (req: Request, res: Response) => {welcomeGenericApi(res,req);});
 
-router.get("/", (req: Request, res: Response) => {
-  const nombre = req.query.nombre as string | undefined;
-  const nombreAux = (nombre=== undefined)?``:nombre;
-  welcomeGenericApi(nombreAux, res);
-});
+router.get("/", validarNombre, (req: Request, res: Response) => {welcomeGenericApi(res,req);});
 
-router.post("/", async (req: Request, res: Response) => {
-  const { nombre } = req.body;
-  const nombreAux = (nombre=== undefined || typeof nombre === "boolean")?``:nombre;
-  welcomeGenericApi(nombreAux, res);
-});
+router.post("/", validarNombre, async (req: Request, res: Response) => {welcomeGenericApi( res,req);});
 
 export default router;
