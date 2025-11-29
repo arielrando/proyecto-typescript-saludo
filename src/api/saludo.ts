@@ -17,7 +17,7 @@ function validarNombre(req: Request, res: Response, next: NextFunction): void {
     logger.error(`No ingreso el nombre`);
     res.status(400).json({
       error: true,
-      errorMessage: "Debe enviar un nombre válido",
+      errorMessage: "No ingreso su nombre!",
     });
     return;
   }
@@ -26,7 +26,7 @@ function validarNombre(req: Request, res: Response, next: NextFunction): void {
     logger.error(`No se ingreso solo letras: ${nombre}`);
     res.status(400).json({
       error: true,
-      errorMessage: "El nombre solo puede contener letras",
+      errorMessage: "El nombre solo puede contener letras!",
     });
     return;
   }
