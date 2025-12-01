@@ -51,3 +51,6 @@ para acceder a dicho saludo hay 3 maneras de hacerlo:
 
 ## Demo en vivo
 https://proyecto-typescript-saludo.onrender.com/api/saludo/juan
+
+## Problemas Conocidos
+si se envia una query muy larga puede romper el proyecto.
