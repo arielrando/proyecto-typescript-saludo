@@ -1,5 +1,5 @@
 # Saludo API
-Este es un pequeño proyecto hecho en Node.js y TypeScript que simula el funcionamiento de una API.
+Este es un proyecto hecho en Node.js y TypeScript que simula el funcionamiento de una API.
 
 ## Tecnologías usadas
 
@@ -51,6 +51,3 @@ para acceder a dicho saludo hay 3 maneras de hacerlo:
 
 ## Demo en vivo
 https://proyecto-typescript-saludo.onrender.com/api/saludo/juan
-
-## Problemas Conocidos
-si se envia una query muy larga puede romper el proyecto.
